@@ -28,9 +28,10 @@ APP_JARS = 'C://data/jars/'
 # 运行目录,不要手动创建,启动时判断目录是否存在来初始化项目
 APP_ROOT = 'C://data/nutzwk/'
 # jar文件名,名称要保持与配置文件里 nutz.application.name 值一致
+# 如果是单机 wk-nb-service-sys 一定为第一个启动项目
 APP_LIST = [
-    'wk-nb-service-cms',
-    'wk-nb-service-sys'
+    'wk-nb-service-sys',
+    'wk-nb-service-cms'
 ]
 # jar包启动的jvm配置参数
 APP_OPTS = {

@@ -44,7 +44,7 @@ def heart():
 
 def init():
     # 延迟几秒,让项目启动完全
-    time.sleep(10)
+    time.sleep(30)
     # enter四个参数分别为: 间隔时间、优先级、被调用触发的函数、传递参数,如果只有一个参数需加,号 (xxx,)
     schedule.enter(settings.HTTP_HEARTBEAT, 0, heart)
     schedule.run()
@@ -189,6 +189,8 @@ class execTaskThread(threading.Thread):
             if ok:
                 t = startJavaThread(appname)
                 t.start()
+                settings.CACHE_TASK_IDS.remove(self.taskid)
+                report(self.taskid, 2, '执行成功')
 
 
 def dowload(type, appname, appversion):

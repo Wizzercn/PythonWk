@@ -50,6 +50,7 @@ for appName in settings.APP_LIST:
     try:
         t = server.startJavaThread(appName)
         t.start()
+        time.sleep(5)
     except Exception as e:
         log.error(str(e))
 

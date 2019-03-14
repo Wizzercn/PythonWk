@@ -14,7 +14,7 @@ NutzWk 微服务开发框架应用守护进程 https://wizzer.cn
 ## 使用说明
 
 * 根据配置要求将jar包及配置文件置于指定文件夹
-* 执行 `python start.py` 启动守护进程
+* 执行 `python server.py` 启动守护进程
 
 
 ## 配置说明

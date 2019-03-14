@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import json
 import logging.handlers
+import math
 import os
 import platform
 import random
@@ -42,7 +43,7 @@ def heart():
     schedule.enter(settings.HTTP_HEARTBEAT, 0, heart)
 
 
-def init():
+def start():
     # 延迟几秒,让项目启动完全
     time.sleep(30)
     # enter四个参数分别为: 间隔时间、优先级、被调用触发的函数、传递参数,如果只有一个参数需加,号 (xxx,)
@@ -116,7 +117,7 @@ class startJavaThread(threading.Thread):
     def __init__(self, appname):
         threading.Thread.__init__(self)
         self.appname = appname
-        self.daemon = True
+        self.daemon = False
 
     def run(self):
         _env = os.environ.copy()
@@ -263,3 +264,44 @@ def report(taskid, status, msg):
         request.urlopen(req, None, settings.HTTP_TIMEOUT).read()
     except Exception as e:
         log.error(str(e) + ':::' + url)
+
+
+def init():
+    # 初始化运行目录
+    if not os.path.exists(settings.APP_ROOT):
+        now = time.time()
+        log.info('初始化运行目录: ' + settings.APP_ROOT)
+        os.makedirs(settings.APP_ROOT)
+        for appName in settings.APP_LIST:
+            if not os.path.exists(settings.APP_ROOT + appName):
+                try:
+                    os.makedirs(settings.APP_ROOT + appName + '/app/0/')
+                    os.makedirs(settings.APP_ROOT + appName + '/conf/0/')
+                    shutil.copyfile(settings.APP_JARS + appName + '.jar',
+                                    settings.APP_ROOT + appName + '/app/0/' + appName + '.jar')
+                    shutil.copyfile(settings.APP_JARS + appName + '.properties',
+                                    settings.APP_ROOT + appName + '/conf/0/' + appName + '.properties')
+                    file = open(settings.APP_ROOT + appName + '/app/0/version', 'w')
+                    file.write("")
+                    file.close()
+                    file = open(settings.APP_ROOT + appName + '/conf/0/version', 'w')
+                    file.write("")
+                    file.close()
+                except Exception as e:
+                    log.error('运行目录初始化出错::' + str(e))
+        log.info('初始化运行目录完成,耗时: ' + str(math.ceil(1000 * (time.time() - now))) + "ms")
+    else:
+        log.info('运行目录已存在,开始启动项目...')
+
+    for appName in settings.APP_LIST:
+        try:
+            t = startJavaThread(appName)
+            t.start()
+            time.sleep(5)
+        except Exception as e:
+            log.error(str(e))
+    start()
+
+
+if __name__ == '__main__':
+    init()

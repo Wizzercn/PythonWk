@@ -6,8 +6,10 @@ APP_JARS = 'C://data/jars/'
 APP_ROOT = 'C://data/nutzwk/'
 # jar文件名,名称要保持与配置文件里 nutz.application.name 值一致
 APP_LIST = [
-    'wk-nb-service-cms',
-    'wk-nb-service-sys'
+    'wk-nb-service-sys',
+    'wk-nb-service-cms',	
+	'wk-nb-web-api',
+	'wk-nb-web-vue'
 ]
 # jar包启动的jvm配置参数
 APP_OPTS = {

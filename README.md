@@ -70,3 +70,7 @@ CACHE_HOST_NAME = ''
     #为应用管理提供支持,部署根路径
     logback.exts.deploy.root=C://data/nutzwk
 ```
+
+## 管理后台界面
+
+![models](demo.png)

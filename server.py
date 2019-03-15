@@ -39,7 +39,8 @@ schedule = sched.scheduler(time.time, time.sleep)
 
 # 被周期性调度触发的函数
 def heart():
-    http()
+    h = startHeartThread()
+    h.start()
     schedule.enter(settings.HTTP_HEARTBEAT, 0, heart)
 
 
@@ -52,45 +53,50 @@ def start():
 
 
 # 心跳请求,定时获取最新任务
-def http():
-    url = settings.HTTP_URL + "/task"
-    now = int(time.time())
-    nonce = ''.join(random.sample('abcdefghijklmnopqrstuvwxyz0123456789', 32))
-    headers = {
-        r'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
-                       'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.109 Safari/537.36',
-        r'Accept': 'application/json, text/javascript, */*; q=0.01',
-        r'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
-    }
-    data = {
-        'appid': settings.HTTP_SECRET_ID,
-        'nonce': nonce,
-        'timestamp': str(now),
-        'hosts': ','.join(settings.APP_LIST),
-        'hostname': settings.CACHE_HOST_NAME
-    }
-    sign = osutil.createSign(settings.HTTP_SECRET_KEY, data)
-    data['sign'] = sign
-    data = parse.urlencode(data).encode('utf-8')
-    try:
-        req = request.Request(url, data, headers, None, None, 'POST')
-        page = request.urlopen(req, None, settings.HTTP_TIMEOUT).read()
-        result = page.decode('utf-8')
-        log.debug(result)
-        res_data = json.loads(result)
-        if res_data['code'] == 0:
-            task_list = res_data['data']
-            for task in task_list:
-                # 将任务ID放到缓存里,防止重复执行同一个任务
-                if task['id'] in settings.CACHE_TASK_IDS:
-                    log.debug('任务已存在,任务ID:::' + task['id'])
-                else:
-                    settings.CACHE_TASK_IDS.append(task['id'])
-                    t = execTaskThread(task['id'], task)
-                    t.start()
-                    log.debug('任务已添加,任务ID:::' + task['id'])
-    except Exception as e:
-        log.error(str(e) + ':::' + url)
+class startHeartThread(threading.Thread):
+    def __init__(self, appname):
+        threading.Thread.__init__(self)
+        self.daemon = False
+
+    def run(self):
+        url = settings.HTTP_URL + "/task"
+        now = int(time.time())
+        nonce = ''.join(random.sample('abcdefghijklmnopqrstuvwxyz0123456789', 32))
+        headers = {
+            r'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
+                           'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.109 Safari/537.36',
+            r'Accept': 'application/json, text/javascript, */*; q=0.01',
+            r'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
+        }
+        data = {
+            'appid': settings.HTTP_SECRET_ID,
+            'nonce': nonce,
+            'timestamp': str(now),
+            'hosts': ','.join(settings.APP_LIST),
+            'hostname': settings.CACHE_HOST_NAME
+        }
+        sign = osutil.createSign(settings.HTTP_SECRET_KEY, data)
+        data['sign'] = sign
+        data = parse.urlencode(data).encode('utf-8')
+        try:
+            req = request.Request(url, data, headers, None, None, 'POST')
+            page = request.urlopen(req, None, settings.HTTP_TIMEOUT).read()
+            result = page.decode('utf-8')
+            log.debug(result)
+            res_data = json.loads(result)
+            if res_data['code'] == 0:
+                task_list = res_data['data']
+                for task in task_list:
+                    # 将任务ID放到缓存里,防止重复执行同一个任务
+                    if task['id'] in settings.CACHE_TASK_IDS:
+                        log.debug('任务已存在,任务ID:::' + task['id'])
+                    else:
+                        settings.CACHE_TASK_IDS.append(task['id'])
+                        t = execTaskThread(task['id'], task)
+                        t.start()
+                        log.debug('任务已添加,任务ID:::' + task['id'])
+        except Exception as e:
+            log.error(str(e) + ':::' + url)
 
 
 # 杀死进程

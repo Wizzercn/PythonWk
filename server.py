@@ -15,6 +15,8 @@ import threading
 import time
 from urllib import request, parse
 
+import psutil
+
 import osutil
 import settings
 
@@ -68,12 +70,22 @@ class startHeartThread(threading.Thread):
             r'Accept': 'application/json, text/javascript, */*; q=0.01',
             r'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
         }
+        mem = psutil.virtual_memory()
+        cpu_percent = psutil.cpu_percent(0.5)
+        net = psutil.net_io_counters(pernic=False, nowrap=True)
         data = {
             'appid': settings.HTTP_SECRET_ID,
             'nonce': nonce,
             'timestamp': str(now),
             'apps': ','.join(settings.APP_LIST),
-            'hostname': settings.CACHE_HOST_NAME
+            'hostname': settings.CACHE_HOST_NAME,
+            'mem_total': mem.total,
+            'mem_used': mem.used,
+            'mem_free': mem.free,
+            'mem_percent': mem.percent,
+            'cpu_percent': cpu_percent,
+            'net_sent': net.bytes_sent,
+            'net_recv': net.bytes_recv
         }
         sign = osutil.createSign(settings.HTTP_SECRET_KEY, data)
         data['sign'] = sign

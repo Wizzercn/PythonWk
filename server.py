@@ -269,7 +269,6 @@ class execReportThread(threading.Thread):
             'appid': settings.HTTP_SECRET_ID,
             'nonce': nonce,
             'timestamp': str(now),
-            'hosts': ','.join(settings.APP_LIST),
             'hostname': settings.CACHE_HOST_NAME,
             'taskid': self.taskid,
             'status': str(self.status),

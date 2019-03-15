@@ -151,9 +151,11 @@ class execTaskThread(threading.Thread):
             result = killProcess(self.task['processId'])
             if result['code'] == 0:
                 settings.CACHE_TASK_IDS.remove(self.taskid)
-                report(self.taskid, 2, '执行成功')
+                r = execReportThread(self.taskid, 2, '执行成功')
+                r.start()
             else:
-                report(self.taskid, 3, result['msg'])
+                r = execReportThread(self.taskid, 3, result['msg'])
+                r.start()
         if 'start' == action:
             appname = self.task['name']
             appversion = self.task['appVersion']
@@ -165,33 +167,36 @@ class execTaskThread(threading.Thread):
                     os.makedirs(settings.APP_ROOT + appname + '/app/' + appversion)
                 except Exception as e:
                     log.error(str(e))
-                if dowload('jar', appname, appversion) == True:
+                if dowload('jar', appname, appversion):
                     oldappversion = osutil.getAppVersion(appname)
                     if oldappversion != appversion:
                         shutil.move(settings.APP_ROOT + appname + '/app/' + oldappversion + '/version',
                                     settings.APP_ROOT + appname + '/app/' + appversion + '/version')
                 else:
                     ok = False
-                    report(self.taskid, 3, 'Jar包下载失败')
+                    r = execReportThread(self.taskid, 3, 'Jar包下载失败')
+                    r.start()
             # 判断配置文件是否存在,存在则下载并覆盖,不存在则下载
             if not os.path.exists(settings.APP_ROOT + appname + '/conf/' + confversion + '/' + appname + '.properties'):
                 try:
                     os.makedirs(settings.APP_ROOT + appname + '/conf/' + confversion)
                 except Exception as e:
                     log.error(str(e))
-            if dowload('conf', appname, confversion) == True:
+            if dowload('conf', appname, confversion):
                 oldconfversion = osutil.getConfVersion(appname)
                 if oldconfversion != confversion:
                     shutil.move(settings.APP_ROOT + appname + '/conf/' + oldconfversion + '/version',
                                 settings.APP_ROOT + appname + '/conf/' + confversion + '/version')
             else:
                 ok = False
-                report(self.taskid, 3, '配置文件下载失败')
+                r = execReportThread(self.taskid, 3, '配置文件下载失败')
+                r.start()
             if ok:
                 t = startJavaThread(appname)
                 t.start()
                 settings.CACHE_TASK_IDS.remove(self.taskid)
-                report(self.taskid, 2, '执行成功')
+                r = execReportThread(self.taskid, 2, '执行成功')
+                r.start()
 
 
 def dowload(type, name, version):
@@ -228,42 +233,50 @@ def dowload(type, name, version):
             filepath = settings.APP_ROOT + name + '/app/' + version + "/" + name + '.jar'
         with open(filepath, "wb+") as file:
             file.write(data)
-            file.close()
         return True
     except Exception as e:
         log.error(str(e) + ':::' + url)
         return False
 
 
-# status 0-待执行,1-执行中,2-执行成功,3-执行失败,4-撤销任务
-def report(taskid, status, msg):
-    url = settings.HTTP_URL + "/report"
-    now = int(time.time())
-    nonce = ''.join(random.sample('abcdefghijklmnopqrstuvwxyz0123456789', 32))
-    headers = {
-        r'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
-                       'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.109 Safari/537.36',
-        r'Accept': 'application/json, text/javascript, */*; q=0.01',
-        r'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
-    }
-    data = {
-        'appid': settings.HTTP_SECRET_ID,
-        'nonce': nonce,
-        'timestamp': str(now),
-        'hosts': ','.join(settings.APP_LIST),
-        'hostname': settings.CACHE_HOST_NAME,
-        'taskid': taskid,
-        'status': str(status),
-        'msg': msg
-    }
-    sign = osutil.createSign(settings.HTTP_SECRET_KEY, data)
-    data['sign'] = sign
-    data = parse.urlencode(data).encode('utf-8')
-    try:
-        req = request.Request(url, data, headers, None, None, 'POST')
-        request.urlopen(req, None, settings.HTTP_TIMEOUT).read()
-    except Exception as e:
-        log.error(str(e) + ':::' + url)
+# 上报执行结果 status 0-待执行,1-执行中,2-执行成功,3-执行失败,4-撤销任务
+class execReportThread(threading.Thread):
+
+    def __init__(self, taskid, status, msg):
+        threading.Thread.__init__(self)
+        self.taskid = taskid
+        self.status = status
+        self.msg = msg
+        self.daemon = False
+
+    def run(self):
+        url = settings.HTTP_URL + "/report"
+        now = int(time.time())
+        nonce = ''.join(random.sample('abcdefghijklmnopqrstuvwxyz0123456789', 32))
+        headers = {
+            r'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
+                           'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.109 Safari/537.36',
+            r'Accept': 'application/json, text/javascript, */*; q=0.01',
+            r'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
+        }
+        data = {
+            'appid': settings.HTTP_SECRET_ID,
+            'nonce': nonce,
+            'timestamp': str(now),
+            'hosts': ','.join(settings.APP_LIST),
+            'hostname': settings.CACHE_HOST_NAME,
+            'taskid': self.taskid,
+            'status': str(self.status),
+            'msg': self.msg
+        }
+        sign = osutil.createSign(settings.HTTP_SECRET_KEY, data)
+        data['sign'] = sign
+        data = parse.urlencode(data).encode('utf-8')
+        try:
+            req = request.Request(url, data, headers, None, None, 'POST')
+            request.urlopen(req, None, settings.HTTP_TIMEOUT).read()
+        except Exception as e:
+            log.error(str(e) + ':::' + url)
 
 
 def init():

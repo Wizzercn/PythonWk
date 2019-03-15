@@ -54,7 +54,7 @@ def start():
 
 # 心跳请求,定时获取最新任务
 class startHeartThread(threading.Thread):
-    def __init__(self, appname):
+    def __init__(self):
         threading.Thread.__init__(self)
         self.daemon = False
 

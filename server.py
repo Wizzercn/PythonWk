@@ -185,9 +185,7 @@ class execTaskThread(threading.Thread):
                     os.makedirs(settings.APP_ROOT + appname + '/app/' + appversion)
                 except Exception as e:
                     log.error(str(e))
-                if dowload('jar', appname, appversion):
-                    ok = True
-                else:
+                if not dowload('jar', appname, appversion):
                     ok = False
                     r = execReportThread(self.taskid, 3, 'Jar包下载失败')
                     r.start()
@@ -197,26 +195,25 @@ class execTaskThread(threading.Thread):
                     os.makedirs(settings.APP_ROOT + appname + '/conf/' + confversion)
                 except Exception as e:
                     log.error(str(e))
-            if dowload('conf', appname, confversion):
-                ok = True
-            else:
+            if not dowload('conf', appname, confversion):
                 ok = False
                 r = execReportThread(self.taskid, 3, '配置文件下载失败')
                 r.start()
-            try:
-                oldappversion = osutil.getAppVersion(appname)
-                if oldappversion != appversion:
-                    shutil.move(settings.APP_ROOT + appname + '/app/' + oldappversion + '/version',
-                                settings.APP_ROOT + appname + '/app/' + appversion + '/version')
-                oldconfversion = osutil.getConfVersion(appname)
-                if oldconfversion != confversion:
-                    shutil.move(settings.APP_ROOT + appname + '/conf/' + oldconfversion + '/version',
-                                settings.APP_ROOT + appname + '/conf/' + confversion + '/version')
-            except Exception as e:
-                ok = False
-                log.error(str(e))
-                r = execReportThread(self.taskid, 3, '切换版本出错')
-                r.start()
+            if ok:
+                try:
+                    oldappversion = osutil.getAppVersion(appname)
+                    if oldappversion != appversion:
+                        shutil.move(settings.APP_ROOT + appname + '/app/' + oldappversion + '/version',
+                                    settings.APP_ROOT + appname + '/app/' + appversion + '/version')
+                    oldconfversion = osutil.getConfVersion(appname)
+                    if oldconfversion != confversion:
+                        shutil.move(settings.APP_ROOT + appname + '/conf/' + oldconfversion + '/version',
+                                    settings.APP_ROOT + appname + '/conf/' + confversion + '/version')
+                except Exception as e:
+                    ok = False
+                    log.error(str(e))
+                    r = execReportThread(self.taskid, 3, '切换版本出错')
+                    r.start()
             if ok:
                 t = startJavaThread(appname)
                 t.start()

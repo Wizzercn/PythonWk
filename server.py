@@ -72,7 +72,7 @@ class startHeartThread(threading.Thread):
             'appid': settings.HTTP_SECRET_ID,
             'nonce': nonce,
             'timestamp': str(now),
-            'hosts': ','.join(settings.APP_LIST),
+            'apps': ','.join(settings.APP_LIST),
             'hostname': settings.CACHE_HOST_NAME
         }
         sign = osutil.createSign(settings.HTTP_SECRET_KEY, data)

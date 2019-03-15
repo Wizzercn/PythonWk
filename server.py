@@ -179,7 +179,7 @@ class execTaskThread(threading.Thread):
                     os.makedirs(settings.APP_ROOT + appname + '/conf/' + confversion)
                 except Exception as e:
                     log.error(str(e))
-            if dowload('conf', appname, appversion) == True:
+            if dowload('conf', appname, confversion) == True:
                 oldconfversion = osutil.getConfVersion(appname)
                 if oldconfversion != confversion:
                     shutil.move(settings.APP_ROOT + appname + '/conf/' + oldconfversion + '/version',
@@ -194,7 +194,7 @@ class execTaskThread(threading.Thread):
                 report(self.taskid, 2, '执行成功')
 
 
-def dowload(type, appname, appversion):
+def dowload(type, name, version):
     if type == 'conf':
         url = settings.HTTP_URL + "/conf/download"
     else:
@@ -213,8 +213,8 @@ def dowload(type, appname, appversion):
         'timestamp': str(now),
         'hosts': ','.join(settings.APP_LIST),
         'hostname': settings.CACHE_HOST_NAME,
-        'appname': appname,
-        'appversion': appversion
+        'name': name,
+        'version': version
     }
     sign = osutil.createSign(settings.HTTP_SECRET_KEY, data)
     data['sign'] = sign
@@ -223,9 +223,9 @@ def dowload(type, appname, appversion):
         req = request.Request(url, data, headers, None, None, 'POST')
         data = request.urlopen(req, None, settings.HTTP_TIMEOUT).read()
         if type == 'conf':
-            filepath = settings.APP_ROOT + appname + '/conf/' + appversion + "/" + appname + '.properties'
+            filepath = settings.APP_ROOT + name + '/conf/' + version + "/" + name + '.properties'
         else:
-            filepath = settings.APP_ROOT + appname + '/app/' + appversion + "/" + appname + '.jar'
+            filepath = settings.APP_ROOT + name + '/app/' + version + "/" + name + '.jar'
         with open(filepath, "wb+") as file:
             file.write(data)
             file.close()

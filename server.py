@@ -79,13 +79,13 @@ class startHeartThread(threading.Thread):
             'timestamp': str(now),
             'apps': ','.join(settings.APP_LIST),
             'hostname': settings.CACHE_HOST_NAME,
-            'mem_total': mem.total,
-            'mem_used': mem.used,
-            'mem_free': mem.free,
-            'mem_percent': mem.percent,
-            'cpu_percent': cpu_percent,
-            'net_sent': net.bytes_sent,
-            'net_recv': net.bytes_recv
+            'mem_total': str(mem.total),
+            'mem_used': str(mem.used),
+            'mem_free': str(mem.free),
+            'mem_percent': str(mem.percent),
+            'cpu_percent': str(cpu_percent),
+            'net_sent': str(net.bytes_sent),
+            'net_recv': str(net.bytes_recv)
         }
         sign = osutil.createSign(settings.HTTP_SECRET_KEY, data)
         data['sign'] = sign

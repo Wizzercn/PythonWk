@@ -38,7 +38,12 @@ APP_LIST = [
 ]
 # jar包启动的jvm配置参数
 APP_OPTS = {
-    'wk-nb-service-cms': ''
+    'wk-nb-service-sys': '-Xmx100m -Xms60m',
+    'wk-nb-service-cms': '-Xmx80m -Xms40m',
+    'wk-nb-service-wx': '-Xmx80m -Xms40m',
+    'wk-nb-task': '-Xmx80m -Xms40m',
+    'wk-nb-web-api': '-Xmx80m -Xms40m',
+    'wk-nb-web-vue': '-Xmx150m -Xms80m'
 }
 # 通信密钥,保持与 wk-nb-web-api 模块里配置内容一致,用于心跳通信
 HTTP_SECRET_ID = 'wizzer'

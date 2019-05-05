@@ -2,8 +2,17 @@
 # -*- coding: utf-8 -*-
 import hashlib
 import os
+import psutil
 
 import settings
+
+
+def netstat():
+    status_temp = []
+    net_connections = psutil.net_connections()
+    for key in net_connections:
+        status_temp.append(key.status)
+    return status_temp.count("ESTABLISHED")
 
 
 # 签名算法

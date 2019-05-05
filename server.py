@@ -73,6 +73,7 @@ class startHeartThread(threading.Thread):
         mem = psutil.virtual_memory()
         cpu_percent = psutil.cpu_percent(0.5)
         net = psutil.net_io_counters(pernic=False, nowrap=True)
+        hdd = psutil.disk_usage('/')
         data = {
             'appid': settings.HTTP_SECRET_ID,
             'nonce': nonce,
@@ -85,7 +86,12 @@ class startHeartThread(threading.Thread):
             'mem_percent': str(mem.percent),
             'cpu_percent': str(cpu_percent),
             'net_sent': str(net.bytes_sent),
-            'net_recv': str(net.bytes_recv)
+            'net_recv': str(net.bytes_recv),
+            'net_tcp': str(osutil.netstat()),
+            'hdd_total': str(hdd.total),
+            'hdd_used': str(hdd.used),
+            'hdd_free': str(hdd.free),
+            'hdd_percent': str(hdd.percent)
         }
         sign = osutil.createSign(settings.HTTP_SECRET_KEY, data)
         data['sign'] = sign

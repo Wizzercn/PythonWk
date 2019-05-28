@@ -1,7 +1,7 @@
 # PythonWk
 NutzWk 微服务开发框架应用守护进程 https://wizzer.cn
 
-* 基于 Python 3.x 开发
+* 基于 Python 3.7.3 开发
 * 支持 NutzWk 5.1.6 以上版本
 * 支持分布式部署
 * 可用性：试用，欢迎提交issue

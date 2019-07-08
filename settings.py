@@ -28,8 +28,8 @@ HTTP_SECRET_KEY = 'nutzwk'
 # API路径
 HTTP_URL = 'http://127.0.0.1:9001/open/api/deploy'
 # 心跳周期(单位:秒)
-HTTP_HEARTBEAT = 10
-HTTP_TIMEOUT = 5
+HTTP_HEARTBEAT = 15
+HTTP_TIMEOUT = 12
 
 CACHE_TASK_IDS = []
 CACHE_HOST_NAME = ''

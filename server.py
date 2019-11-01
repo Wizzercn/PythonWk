@@ -156,8 +156,9 @@ class startJavaThread(threading.Thread):
             jvm = ''
         cmd = 'java ' + ' -Dnutz.boot.configure.properties.dir=' + confpath + ' ' + jvm + ' -jar ' + apppath
         log.info(cmd)
-        with open("/data/python/" + self.appname + ".log", "w") as f:
-            subprocess.call(cmd, close_fds=True, shell=True, env=_env, stdout=f, stderr=f)
+		subprocess.call(cmd,close_fds=True,shell=True,env=_env)
+        #with open("/data/python/" + self.appname + ".log", "w") as f:
+        #   subprocess.call(cmd, close_fds=True, shell=True, env=_env, stdout=f, stderr=f)
 
 
 # 执行任务命令
